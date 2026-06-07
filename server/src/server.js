@@ -23,21 +23,21 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (url.pathname === "/api/feeds/all.ics") {
-      return sendIcs(res, await buildFeed("all", { feedUrl: externalUrl(req) }));
+      return sendIcs(res, await buildFeed("all", { feedUrl: externalUrl(req) }), wantsDownload(url));
     }
     if (url.pathname === "/api/feeds/masters-champions.ics") {
-      return sendIcs(res, await buildFeed("masters-champions", { feedUrl: externalUrl(req) }));
+      return sendIcs(res, await buildFeed("masters-champions", { feedUrl: externalUrl(req) }), wantsDownload(url));
     }
     const regionMatch = url.pathname.match(/^\/api\/feeds\/regions\/([a-z-]+)\.ics$/);
     if (regionMatch) {
       const region = regionMatch[1];
       assertRegion(region);
-      return sendIcs(res, await buildFeed("region", { region, feedUrl: externalUrl(req) }));
+      return sendIcs(res, await buildFeed("region", { region, feedUrl: externalUrl(req) }), wantsDownload(url));
     }
     const teamMatch = url.pathname.match(/^\/api\/feeds\/teams\/(.+)\.ics$/);
     if (teamMatch) {
       const team = decodeURIComponent(teamMatch[1]);
-      return sendIcs(res, await buildFeed("team", { teams: [team], feedUrl: externalUrl(req) }));
+      return sendIcs(res, await buildFeed("team", { teams: [team], feedUrl: externalUrl(req) }), wantsDownload(url));
     }
     if (url.pathname === "/api/feeds/custom.ics") {
       return sendIcs(res, await buildFeed("custom", {
@@ -45,7 +45,7 @@ const server = http.createServer(async (req, res) => {
         teams: parseList(url.searchParams.get("teams")),
         events: parseList(url.searchParams.get("events")),
         feedUrl: externalUrl(req)
-      }));
+      }), wantsDownload(url));
     }
 
     return sendJson(res, 404, { error: "Not found" });
@@ -73,11 +73,11 @@ function sendJson(res, status, body) {
   res.end(JSON.stringify(body));
 }
 
-function sendIcs(res, body) {
+function sendIcs(res, body, download = false) {
   res.writeHead(200, {
     ...corsHeaders(),
     "content-type": "text/calendar; charset=utf-8",
-    "content-disposition": "inline",
+    "content-disposition": download ? "attachment; filename=\"vlr-esports.ics\"" : "inline",
     "cache-control": "public, max-age=300"
   });
   res.end(body);
@@ -94,4 +94,8 @@ function corsHeaders() {
 function externalUrl(req) {
   const rawUrl = req.url || "";
   return `${config.publicBaseUrl}${rawUrl}`;
+}
+
+function wantsDownload(url) {
+  return url.searchParams.get("download") === "1";
 }

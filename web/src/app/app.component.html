@@ -7,17 +7,28 @@
     <a class="health" href="/api/health" target="_blank" rel="noreferrer">API</a>
   </section>
 
+  <div class="toast" *ngIf="notice()">{{ notice() }}</div>
+
   <section class="panel fixed" *ngIf="catalog() as data">
     <div>
       <h2>Ready-made feeds</h2>
       <p>Subscribe directly or build a filtered calendar below.</p>
     </div>
     <div class="feed-grid">
-      <a [href]="fixedFeed(data.feeds.all)">All matches</a>
-      <a [href]="fixedFeed(data.feeds.mastersChampions)">Masters + Champions</a>
-      <a *ngFor="let region of data.regions" [href]="fixedFeed('/api/feeds/regions/' + region.code + '.ics')">
-        {{ region.name }}
-      </a>
+      <div class="feed-item">
+        <button type="button" (click)="copyUrl(fixedFeed(data.feeds.all), 'All matches URL')">All matches</button>
+        <a [href]="downloadFeed(fixedFeed(data.feeds.all))">Download</a>
+      </div>
+      <div class="feed-item">
+        <button type="button" (click)="copyUrl(fixedFeed(data.feeds.mastersChampions), 'Masters + Champions URL')">Masters + Champions</button>
+        <a [href]="downloadFeed(fixedFeed(data.feeds.mastersChampions))">Download</a>
+      </div>
+      <div class="feed-item" *ngFor="let region of data.regions">
+        <button type="button" (click)="copyUrl(fixedFeed('/api/feeds/regions/' + region.code + '.ics'), region.name + ' URL')">
+          {{ region.name }}
+        </button>
+        <a [href]="downloadFeed(fixedFeed('/api/feeds/regions/' + region.code + '.ics'))">Download</a>
+      </div>
     </div>
   </section>
 
@@ -82,7 +93,8 @@
     <div class="output">
       <label for="feed-url">Subscription URL</label>
       <input id="feed-url" readonly [value]="customUrl()">
-      <a [href]="customUrl()">Open ICS</a>
+      <button type="button" (click)="copyUrl()">Copy URL</button>
+      <a [href]="downloadFeed(customUrl())">Download ICS</a>
     </div>
   </section>
 

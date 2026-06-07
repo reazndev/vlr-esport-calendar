@@ -23,6 +23,7 @@ type Catalog = {
 export class AppComponent {
   private readonly http = inject(HttpClient);
   private searchRequestId = 0;
+  private noticeTimeout: number | undefined;
   readonly origin = window.location.origin;
   readonly loading = signal(true);
   readonly error = signal("");
@@ -33,6 +34,7 @@ export class AppComponent {
   readonly query = signal("");
   readonly searchResults = signal<Team[]>([]);
   readonly searching = signal(false);
+  readonly notice = signal("");
 
   readonly customUrl = computed(() => {
     const params = new URLSearchParams();
@@ -61,6 +63,11 @@ export class AppComponent {
 
   fixedFeed(path: string): string {
     return `${this.origin}${path}`;
+  }
+
+  downloadFeed(url: string): string {
+    const separator = url.includes("?") ? "&" : "?";
+    return `${url}${separator}download=1`;
   }
 
   toggleRegion(code: string): void {
@@ -120,8 +127,9 @@ export class AppComponent {
     });
   }
 
-  async copyUrl(): Promise<void> {
-    await navigator.clipboard.writeText(this.customUrl());
+  async copyUrl(url = this.customUrl(), label = "Subscription URL"): Promise<void> {
+    await navigator.clipboard.writeText(url);
+    this.showNotice(`${label} copied`);
   }
 
   private toggleSet(state: ReturnType<typeof signal<Set<string>>>, value: string): void {
@@ -167,5 +175,13 @@ export class AppComponent {
 
   private normalize(value: string | undefined): string {
     return String(value || "").trim().toLowerCase();
+  }
+
+  private showNotice(message: string): void {
+    this.notice.set(message);
+    if (this.noticeTimeout) {
+      window.clearTimeout(this.noticeTimeout);
+    }
+    this.noticeTimeout = window.setTimeout(() => this.notice.set(""), 2600);
   }
 }
