@@ -26,7 +26,7 @@ GitHub:
 ## Local Development
 
 ```bash
-docker compose up --build
+docker compose -f docker-compose.dev.yml up --build
 ```
 
 Open `http://localhost:8080`.
@@ -36,6 +36,21 @@ API health:
 ```bash
 curl http://localhost:3000/api/health
 curl http://localhost:3000/api/feeds/all.ics
+```
+
+## Production
+
+The default `docker-compose.yml` is production-oriented and pulls GHCR images built by the `Prod Build` GitHub Actions workflow on pushes to the `prod` branch.
+
+```bash
+docker compose pull
+docker compose up -d
+```
+
+Default production port: `8050`. Override it with `WEB_PORT`.
+
+```bash
+PUBLIC_BASE_URL=https://your-domain.example WEB_PORT=8050 docker compose up -d
 ```
 
 ## Configuration

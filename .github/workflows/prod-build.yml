@@ -1,0 +1,73 @@
+name: Prod Build
+
+on:
+  push:
+    branches:
+      - prod
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    name: Build app and images
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Check API syntax
+        working-directory: server
+        run: |
+          node --check src/server.js
+          node --check src/feedService.js
+          node --check src/normalizers.js
+
+      - name: Install web dependencies
+        working-directory: web
+        run: npm ci
+
+      - name: Build Angular web app
+        working-directory: web
+        run: npm run build
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build API image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./server
+          push: true
+          tags: |
+            ghcr.io/reazndev/vlr-esport-calendar-api:prod
+            ghcr.io/reazndev/vlr-esport-calendar-api:${{ github.sha }}
+
+      - name: Build web image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./web
+          push: true
+          tags: |
+            ghcr.io/reazndev/vlr-esport-calendar-web:prod
+            ghcr.io/reazndev/vlr-esport-calendar-web:${{ github.sha }}
+
+      - name: Validate Compose config
+        run: docker compose config
