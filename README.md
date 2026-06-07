@@ -29,8 +29,8 @@ Open `http://localhost:8080`.
 API health:
 
 ```bash
-curl http://localhost:3000/api/health
-curl http://localhost:3000/api/feeds/all.ics
+curl http://localhost:3030/api/health
+curl http://localhost:3030/api/feeds/all.ics
 ```
 
 ## Production
@@ -52,7 +52,7 @@ PUBLIC_BASE_URL=https://your-domain.example WEB_PORT=8050 docker compose up -d
 
 Environment variables for the API:
 
-- `PORT` - default `3000`
+- `PORT` - default `3030`
 - `PUBLIC_BASE_URL` - public URL used by the frontend when composing subscription links
 - `VLR_API_BASE_URL` - default `https://vlrggapi.vercel.app`
 - `CACHE_TTL_MS` - normal feed cache TTL, default `300000`
