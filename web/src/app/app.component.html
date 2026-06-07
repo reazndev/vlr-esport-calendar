@@ -1,0 +1,110 @@
+<main class="shell">
+  <section class="topbar">
+    <div>
+      <p class="eyebrow">Valorant calendar feeds</p>
+      <h1>VLR Esports ICS</h1>
+    </div>
+    <a class="health" href="/api/health" target="_blank" rel="noreferrer">API</a>
+  </section>
+
+  <section class="panel fixed" *ngIf="catalog() as data">
+    <div>
+      <h2>Ready-made feeds</h2>
+      <p>Subscribe directly or build a filtered calendar below.</p>
+    </div>
+    <div class="feed-grid">
+      <a [href]="fixedFeed(data.feeds.all)">All matches</a>
+      <a [href]="fixedFeed(data.feeds.mastersChampions)">Masters + Champions</a>
+      <a *ngFor="let region of data.regions" [href]="fixedFeed('/api/feeds/regions/' + region.code + '.ics')">
+        {{ region.name }}
+      </a>
+    </div>
+  </section>
+
+  <section class="panel builder" *ngIf="catalog() as data">
+    <div class="builder-head">
+      <div>
+        <h2>Custom feed</h2>
+        <p>Select any combination of regions, global events, and teams.</p>
+      </div>
+      <button type="button" class="copy" (click)="copyUrl()">Copy URL</button>
+    </div>
+
+    <div class="section">
+      <h3>Regions</h3>
+      <div class="chips">
+        <button
+          type="button"
+          *ngFor="let region of data.regions"
+          [class.active]="isRegionSelected(region.code)"
+          (click)="toggleRegion(region.code)">
+          {{ region.name }}
+        </button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Events</h3>
+      <div class="chips compact">
+        <button
+          type="button"
+          *ngFor="let event of data.eventFilters"
+          [class.active]="isEventSelected(event.id)"
+          (click)="toggleEvent(event.id)">
+          {{ event.name }}
+        </button>
+      </div>
+    </div>
+
+    <div class="section team-picker">
+      <h3>Teams</h3>
+      <div class="search">
+        <input
+          type="search"
+          [ngModel]="query()"
+          (ngModelChange)="query.set($event); searchTeams()"
+          placeholder="Search or type a team name">
+        <button type="button" (click)="addTeam(query())">Add</button>
+      </div>
+      <div class="results" *ngIf="searchResults().length">
+        <button type="button" *ngFor="let team of searchResults()" (click)="addTeam(team.name)">
+          <span>{{ team.name }}</span>
+          <small *ngIf="team.tag">{{ team.tag }}</small>
+        </button>
+      </div>
+      <div class="selected" *ngIf="selectedTeams().length">
+        <button type="button" *ngFor="let team of selectedTeams()" (click)="removeTeam(team)">
+          {{ team }} &times;
+        </button>
+      </div>
+    </div>
+
+    <div class="output">
+      <label for="feed-url">Subscription URL</label>
+      <input id="feed-url" readonly [value]="customUrl()">
+      <a [href]="customUrl()">Open ICS</a>
+    </div>
+  </section>
+
+  <section class="panel state" *ngIf="loading()">Loading feeds...</section>
+  <section class="panel state error" *ngIf="error()">{{ error() }}</section>
+
+  <footer class="footer">
+    <a href="https://www.usecarly.com/blog/how-to/how-to-subscribe-to-calendar-google/" target="_blank" rel="noreferrer">
+      How to subscribe in Google Calendar
+    </a>
+    <span class="divider"></span>
+    <a class="github-link" href="https://github.com/reazndev" target="_blank" rel="noreferrer" aria-label="reazndev on GitHub">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.385-1.333-1.754-1.333-1.754-1.09-.745.083-.73.083-.73 1.205.085 1.84 1.237 1.84 1.237 1.07 1.835 2.807 1.305 3.492.998.108-.775.418-1.305.762-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.467-2.382 1.235-3.222-.123-.303-.535-1.523.117-3.176 0 0 1.008-.322 3.3 1.23a11.51 11.51 0 0 1 3.003-.404c1.018.005 2.045.138 3.003.404 2.29-1.552 3.295-1.23 3.295-1.23.653 1.653.242 2.873.12 3.176.77.84 1.232 1.912 1.232 3.222 0 4.61-2.805 5.625-5.475 5.92.43.372.823 1.103.823 2.222 0 1.605-.015 2.898-.015 3.293 0 .322.216.695.825.577C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
+      </svg>
+      reazndev
+    </a>
+    <a class="github-link" href="https://github.com/reazndev/vlr-esport-calendar" target="_blank" rel="noreferrer" aria-label="vlr-esport-calendar on GitHub">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.385-1.333-1.754-1.333-1.754-1.09-.745.083-.73.083-.73 1.205.085 1.84 1.237 1.84 1.237 1.07 1.835 2.807 1.305 3.492.998.108-.775.418-1.305.762-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.467-2.382 1.235-3.222-.123-.303-.535-1.523.117-3.176 0 0 1.008-.322 3.3 1.23a11.51 11.51 0 0 1 3.003-.404c1.018.005 2.045.138 3.003.404 2.29-1.552 3.295-1.23 3.295-1.23.653 1.653.242 2.873.12 3.176.77.84 1.232 1.912 1.232 3.222 0 4.61-2.805 5.625-5.475 5.92.43.372.823 1.103.823 2.222 0 1.605-.015 2.898-.015 3.293 0 .322.216.695.825.577C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
+      </svg>
+      reazndev/vlr-esport-calendar
+    </a>
+  </footer>
+</main>

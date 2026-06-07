@@ -1,0 +1,30 @@
+services:
+  api:
+    build:
+      context: ./server
+    environment:
+      PORT: "3000"
+      PUBLIC_BASE_URL: "http://localhost:8080"
+      VLR_API_BASE_URL: "https://vlrggapi.vercel.app"
+      CACHE_TTL_MS: "300000"
+      CATALOG_CACHE_TTL_MS: "1800000"
+      UPCOMING_PAGES: "3"
+      EVENT_PAGES: "3"
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  web:
+    build:
+      context: ./web
+    ports:
+      - "8080:80"
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
