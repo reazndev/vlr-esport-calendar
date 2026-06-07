@@ -18,11 +18,6 @@ For auto-updates, users should subscribe to the feed URL in their calendar app. 
 
 Google Calendar subscription guide: https://www.usecarly.com/blog/how-to/how-to-subscribe-to-calendar-google/
 
-GitHub:
-
-- https://github.com/reazndev
-- https://github.com/reazndev/vlr-esport-calendar
-
 ## Local Development
 
 ```bash
